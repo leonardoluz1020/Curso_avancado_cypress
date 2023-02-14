@@ -66,15 +66,6 @@ describe('Hacker Stories', () => {
 
       it('orders by points', () => { })
     })
-
-    // Hrm, how would I simulate such errors?
-    // Since I still don't know, the tests are being skipped.
-    // TODO: Find a way to test them out.
-    context.skip('Errors', () => {
-      it('shows "Something went wrong ..." in case of a server error', () => { })
-
-      it('shows "Something went wrong ..." in case of a network error', () => { })
-    })
   })
 
   context('Search', () => {
@@ -146,7 +137,7 @@ describe('Hacker Stories', () => {
       })
 
       Cypress._.times(3, () => {
-        it.only('shows a max of 5 buttons for the last searched terms', () => {
+        it('shows a max of 5 buttons for the last searched terms', () => {
           const faker = require('faker')
 
           cy.intercept('GET', '**/search**').as('getRandomStories')
@@ -164,4 +155,31 @@ describe('Hacker Stories', () => {
       })
     })
   })
+})
+context('Errors', () => {
+  it('shows "Something went wrong ..." in case of a server error', () => {
+    cy.intercept(
+      'GET',
+      '**/search**',
+      { statusCode: 500 }
+    ).as('getServerFailure')
+      .visit('/')
+      .wait('@getServerFailure')
+    cy.get('p:contains(Something went wrong ...)')
+      .should('be.visible')
+  })
+
+
+  it('shows "Something went wrong ..." in case of a network error', () => {
+    cy.intercept(
+      'GET',
+      '**/search**',
+      { forceNetworkError: true }
+    ).as('getNetworkFailure')
+      .visit('/')
+      .wait('@getNetworkFailure')
+    cy.get('p:contains(Something went wrong ...)')
+      .should('be.visible')
+  })
+
 })
