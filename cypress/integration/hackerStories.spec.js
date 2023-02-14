@@ -108,14 +108,14 @@ describe('Hacker Stories', () => {
         .should('be.visible')
     })
 
-    it.only('types and clicks the submit button', () => {
+    it('types and clicks the submit button', () => {
       cy.get('#search')
         .type(newTerm)
       cy.contains('Submit')
         .click()
 
-        cy.wait('@getNewTermStories')
-      
+      cy.wait('@getNewTermStories')
+
       cy.get('.item').should('have.length', 20)
       cy.get('.item')
         .first()
@@ -129,13 +129,13 @@ describe('Hacker Stories', () => {
         cy.get('#search')
           .type(`${newTerm}{enter}`)
 
-        cy.assertLoadingIsShownAndHidden()
+        cy.wait('@getNewTermStories')
 
         cy.get(`button:contains(${initialTerm})`)
           .should('be.visible')
           .click()
 
-        cy.assertLoadingIsShownAndHidden()
+        cy.wait('@getStories')
 
         cy.get('.item').should('have.length', 20)
         cy.get('.item')
@@ -145,19 +145,22 @@ describe('Hacker Stories', () => {
           .should('be.visible')
       })
 
-      it('shows a max of 5 buttons for the last searched terms', () => {
-        const faker = require('faker')
+      Cypress._.times(3, () => {
+        it.only('shows a max of 5 buttons for the last searched terms', () => {
+          const faker = require('faker')
 
-        Cypress._.times(6, () => {
-          cy.get('#search')
-            .clear()
-            .type(`${faker.random.word()}{enter}`)
+          cy.intercept('GET', '**/search**').as('getRandomStories')
+
+          Cypress._.times(6, () => {
+            cy.get('#search')
+              .clear()
+              .type(`${faker.random.word()}{enter}`)
+            cy.wait('@getRandomStories')
+          })
+
+          cy.get('.last-searches button')
+            .should('have.length', 5)
         })
-
-        cy.assertLoadingIsShownAndHidden()
-
-        cy.get('.last-searches button')
-          .should('have.length', 5)
       })
     })
   })
